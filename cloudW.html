@@ -1,0 +1,515 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Cloud Services Application discovery</title>
+<!--<link rel="stylesheet" href="./codebase/skins/compact.css" type="text/css" media="screen" charset="utf-8">-->
+ <link rel="stylesheet" href="./codebase/webix.css" type="text/css" media="screen" charset="utf-8">
+<!--<<link rel="stylesheet" href="./codebase/skins/compact.css" type="text/css" media="screen" charset="utf-8">-->
+		<script src="./codebase/webix.js" type="text/javascript" charset="utf-8"></script>
+		<style>
+
+			.main_title{
+			  /*  padding:30px; */
+				font-size: 28px;
+				line-height: 50px;
+				align:center;
+
+			}
+			.blue_row{
+				background-color: #cbdeeb !important;
+			}
+			.blue_row .webixtype_base {
+			  background-color: #27ae60 !important;
+			}
+			.blue_row .webixtype_form{
+				font-size: 14px;
+			}
+			#layout_div{
+			width:90%;
+			 height:1500px;  
+			margin:20px 5% ;
+
+
+			}
+         </style>
+</head>
+<body>
+ <div id='layout_div'></div>
+		<script type="text/javascript" charset="utf-8">
+
+
+		// Left 1
+
+			var left1 = {header:"Configuration Management", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              {view:"text", label:"Application Name",   placeholder:"Name of the application", tooltip:"Name of the application" },
+		                              {view:"text", label:"CMDB ID",   placeholder:"Unique Asset id, Ex: abc123", tooltip:"Unique Asset id, Ex: abc123"},
+		                              {view:"text", label:"CMDB Source",   placeholder:"CMDB Tool , Ex: ServiceNow", tooltip:"CMDB Tool , Ex: ServiceNow" },
+		                              {view:"text", label:"Business",   placeholder:"Business Unit , Ex: commercial", tooltip:"Business Unit , Ex: commercial" },
+		                              {view:"text", label:"Business Process",    placeholder:"Business Process, Ex:Finance", tooltip:"Business Process, Ex:Finance" },
+		                              {cols : [
+		                                       {view:"text", label:"App Owner1",  placeholder:"Name",tooltip:"please enter name and Email address of application owner 1"},
+		                                       {view:"text",   placeholder:"Email Address",width:150}
+		                                      ]},
+		                              {cols : [
+		                                       {view:"text", label:"App Owner2",  placeholder:"Name",tooltip:"please enter name and Email address of application owner 2"},
+		                                       {view:"text",   placeholder:"Email Address",width:150}
+		                                      ]}
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:150
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+
+
+                   var tt1 ="Is this application allowed to go to public cloud as a management mandate";
+                   var tt2 = "Does the application have any special hardware specific requirements that is difficult to relocate";
+                   var tt3 ="Does this application have country specific data and regulated";
+                   var tt4 ="Internal definition for system or data classification" ;
+
+
+          // Right 1
+
+		 var right1 = {header:"Data/System classification", collasped:false, body:{ margin:20,rows:[
+		     {view:"form", elements:[
+										 {
+											view:"combo",
+											label: "Data classification",  name:"Dataclassification",
+											value:1, options:[
+												{ id:1, value:"low"   },
+												{ id:2, value:"moderate"   },
+												{ id:3, value:"high" }
+											]
+										},
+										{   view:"radio", name:"pca", label:"Public Cloud Allowed?", vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ]  , tooltip:tt1  },
+		                              { view:"radio", name:"sca", label:"Speciality Cloud Allowed?", vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] , tooltip:tt2 },
+
+		                              {view:"text", label:"Country restricted data?", tooltip:tt3 ,    placeholder:"country specific data and regulated ?, Ex: Singapore"},
+		                              {view:"text", label:"System Classification", tooltip:tt4, placeholder:"System or data classification? , Ex: Internal facing"}
+
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:180
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+
+		//Left 2
+		var left2 = {header:"Infrastructure", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", id:"l2form", elements:[
+		                              {view:"label", label:"Number of Servers" },
+		                            {cols:[  { view:"counter", label:"Non-Prod",  align:"center", labelWidth: 85},{ view:"counter", label:"Prod",  align:"center", labelWidth: 85}]},
+		                          { view:"datatable", id:"dt1",
+				columns:[
+					{ id:"id",	header:"#", css:"rank", width:50 },
+					{ id:"server",	editor:"text",		header:"Server/IP",fillspace:1},
+					{ id:"pv",	editor:"combo", collection:["Physical","Virtual"],
+							header:"physical?" , width:80},
+					{ id:"sc",	editor:"text",		header:"Storage"},
+					{ id:"os",	editor:"text",		header:"OS"}
+				],
+
+				editable:true,
+				autoheight:true,
+				autowidth:true,
+				select:"row"
+
+
+		       },
+
+		                           {view:"combo",
+											label: "Operating System", id:"fOS",  name:"l2OS",
+											value:"Linux", options:[
+												 "Linux" ,
+												"Solaris" ,
+												"AIX "  ,
+												"Windows"
+												]},
+
+		                              {view:"text", label:"OS version", name:"l2OV",id:"fOV",  placeholder:"Ex : RHEL Version 7.2 update 2 "},
+		                              {view:"text", label:"ServerName[IP Address]", id:"fSN",  name:"l2SN", placeholder:"Ex: dbct1.company.net / 10.8.120.12"},
+		                              {view:"combo",
+											label: "Physical/virtual",  id:"fPV", name:"l2PV",
+											value:"Physical", options:[
+												  "Physical",
+												 "Virtual"
+												]},
+		                              {view:"text", id:"fSC", name:"l2SC", label:"Storage Capacity",   placeholder:"Ex: 2TB Raid 2"},
+		                              {
+							padding: 10,
+							css: "blue_row",
+							cols:[
+
+								{view:"button", id:"fAR",name:"l2AR",type:"form", value:"Add Row", align: "center", css: "blue_row", width:200,height: 30, click:addData },
+								{view:"button", id:"fDR",name:"l2DR",type:"form", value:"Delete Row", align: "center", css: "blue_row", width:200,height: 30,click:removeData }
+							]
+						}
+
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:170
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+
+		  function addData(){
+                    $$("dt1").add({
+                        server:$$('l2form').getValues().l2SN,
+                        pv:$$('l2form').getValues().l2PV,
+                        sc:$$('l2form').getValues().l2SC,
+                        os:$$('l2form').getValues().l2OS + " " +$$('l2form').getValues().l2OV
+
+                        }, 0);
+                };
+                // delete row
+                function removeData(){
+            if(!$$("dt1").getSelectedId()){
+                webix.message("No item is selected!");
+                return;
+            }
+			$$("dt1").remove($$("dt1").getSelectedId());
+		}
+		 //right 2
+		 var right2 = {header:"Generic", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              { view:"counter", label:"Application Age (years)",  max:20},
+		                              {view:"textarea", label:"Application Description",  height:100, placeholder:"Brief desc of application business functions"},
+		                              {view:"textarea", label:"Application Env",  height:50, placeholder:"Technologies used Ex: Java, Tomcat, Oracle etc"},
+		                              {view:"textarea", label:"Application dependencies", height:50 ,  placeholder:"Dependencies on other applications Ex: App1 calls App2 etc."},
+		                              {view:"combo", label:"Application availability",  value:"Active", options:[
+												  "Active", "Inactive" ,"Standby"
+												]},
+		                              {view:"combo", label:"Application Monitoring Tool", value:"Nimsoft", options:[
+												  "Nagios", "Nimsoft" ,"Other"
+												]},
+		                              {view:"counter", label:"Application RPO (Hours) " , max:100},
+		                              {view:"counter", label:"Application RTO (Hours)", max:100},
+		                              {view:"combo", label:"Application Criticality", value:"Tier 1", options:[
+												  "Tier 1", "Tier 2" ,"Tier 3","Other"
+												]},
+		                              {view:"combo", label:"Application Hosted Region",  value:"US", options:[
+												  "US", "APAC" ,"EMEA","NAMR","Other"
+												]},
+		                              {view:"counter", label:"Number of Users", max:10000},
+		                              {view:"textarea", label:"Application Structure (Tier)",height:50,  placeholder:"Full stack of Web, App, DB layer description"},
+		                              {view:"text", label:"Code Scanning",  placeholder:"Names of the code scanning tools or N/A"},
+		                              {view:"textarea", label:"Application Boundary", height:50, placeholder:"Brief description of Firewall rules and boundary conditions"},
+		                              {view:"text", label:"Backup",  placeholder:"Backup tools used and encrypted?"},
+		                              {view:"textarea", label:"Monitoring Data",height:50,  placeholder:"Utilization of the system resources Ex: Avg cpu, memory, IO etc."},
+		                              {view:"text", label:"Performance Data",  placeholder:"Location of the performance data"},
+		                              {view:"text", label:"Access log",  placeholder:"Location of the access log"},
+		                              {view:"combo", label:"User access",  tooltip:"How users access the application", value:"Browser", options:[
+												  "Browser", "Thin Client" ,"Thick Client","Vendor","Other"
+												]}
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:170
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+		  //left 3
+
+		var left3 = {header:"Web", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              {   view:"radio", label:"Web Application?", vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+
+		                              {view:"combo", label:"Internal/External accessible?", value:"Internal", options:[
+												  "Internal", "External"
+												]  },
+		                              {view:"radio", label:"Customer facing application?",  vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+		                              {view:"counter", label:"Concurrent Connections", max:5000},
+		                              {view:"textarea", label:"Protocol & Certificate details", height:60,   placeholder:"SSL Enabled?, Port and Protocol information "},
+		                              {view:"radio", label:"Highly Available (HA) ?",  vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+			                          {view:"radio", label:"Load Balanced ?",  vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+
+		                              {view:"textarea", label:"Web platform & ver.", height:50, placeholder:"Web Server and Version Ex: Apache 2.1.1"},
+		                              {view:"text", label:"Application URL",  placeholder:"Ex: http://app1.comany.com"},
+		                              {view:"combo", label:"Authentication", value:"SSO", options:[
+												  "SSO", "LDAP","Active Directory","Inbuilt","Other","None"
+												]},
+									 {view:"combo", label:"Data center location", value:"Fort Worth", options:[
+												  "Fort Worth", "Livingston","KL","Local","Other"
+												]},
+
+		                              {view:"radio", label:"Hosted on shared Infra?",  vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+		                              {view:"text", label:"Documentation URL",  placeholder:"Ex: Share point, Confluence URL"},
+		                              {view:"radio", label:"Stickiness required?",vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+		                              {view:"textarea", label:"Web Support Team", height:60, placeholder:"List the People of Web support(Name, Email)"}
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:190
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+		// right 3
+		var right3 = {header:"Application", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              {view:"radio", label:"Client/Server Application", vertical:false, options:[
+				                                    { value:"Yes", id:1 },
+				                                    { value:"No", id:2 }
+			                               ] },
+			                           {view:"combo", label:"Application Origin", value:"In house", options:[
+												  "In house", "Third party","Vendor","Other"
+												]},
+		                              {view:"textarea", label:"App tech stack & versions", height:50,  placeholder:"Application development stack JDK, Spring etc."},
+		                              {view:"textarea", label:"Language / Framework",height:50,   placeholder:"Ex: Java, .Net"},
+
+		                              {view:"textarea", label:"Memory Specific Requirements", height:50 ,  placeholder:"Memory intensive? . How many instances?"},
+		                              {view:"combo" , label:"Code repository", value:"GIT", options:[
+												  "GIT", "Subversion","CVS","Other"
+												]},
+		                              {view:"text", label:"Code repository URL",  placeholder:"Ex: git://app1.company.net"},
+		                              {view:"textarea", label:"Application Documents URL",height:50,  placeholder:"docs.company.net/app1 or Upload document"},
+		                              {view:"textarea", label:"Application Development Team", height:50, placeholder:"List the People of Application Development (Name, Email)"}
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:190
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+		//left 4
+		var left4 = {header:"Database", collasped:false, body:{ margin:20,rows:[
+
+		                {view:"form", elements:[
+		                  {view:"combo", label:"Database Type", value:"Oracle", options:[
+												  "Oracle", "MSSQL","Postgres","MYSQL","DB2","Other"
+												]},
+		                              {view:"text", label:"Database Version",   placeholder:"Ex: Oracle 11 g"},
+		                              {view:"combo", label:"HA / Standalone", value:"RAC", options:[
+												  "RAC", "Clustered","Standalone","Other"
+												]},
+									{view:"form", elements:[
+		                              {view:"label", label:"Number of Databases" },
+		                                {cols:[  { view:"counter", label:"Database",  align:"center", labelWidth: 85},{ view:"counter", label:"Instances",  align:"center", labelWidth: 85}]}
+		                              ]},
+		                              {view:"form", elements:[
+		                              {view:"label", label:"Application Database Connectivity"},
+		                              { cols:[
+		                              {view:"checkbox",id:"a", label:"JDBC", value:0},{view:"checkbox",id:"b", label:"ODBC", value:0}]},
+		                              { cols:[
+		                              {view:"checkbox",id:"c", label:"CLI", value:0},{view:"checkbox",id:"d", label:"Others", value:0}]}
+		                              ]},
+
+		                              {view:"counter", label:"Transactions per minute",   max:10000},
+		                              {view:"text", label:"Documentation URL",  placeholder:"Document location or upload documents"},
+		                              {view:"textarea", label:"Backup Details", height:60, placeholder:"Please explain the backup strategy, tools used, size, location and frequency"},
+		                              {view:"combo", label:"Data center location", value:"Fort Worth", options:[
+												  "Fort Worth", "Livingston","KL","Local","Other"
+												]},
+									{view:"radio", label:"Hosted on shared Infra?",  vertical:false, options:[
+				                            { value:"Yes", id:1 },
+				                            { value:"No", id:2 }
+			                               ] },
+		                              {view:"textarea", label:"Disaster/Recovery Service",height:70 , placeholder:"Please explain disaster/recovery strategy, RPO, RTO, frequency of DR tests and results"},
+		                              {view:"textarea", label:"Enterprise Specific Features?",height:50,  placeholder:"List any enterprise / proprietary features used?"},
+		                              {view:"textarea", label:"DB Support Team", height:50, placeholder:"List the People of DB support (Name, Email)"}
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:170
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+
+		   // right4
+
+		var right4 = {header:"Clients", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              {view:"textarea", label:"User Location", height:50,  placeholder:"Internal External, GEO spread of user base Ex: US only"},
+		                              {view:"textarea", label:"Connectivity restrictions",height:50,   placeholder:"List any restrictions on connectivity like VPN only, 24/7 availability etc."},
+		                              {view:"combo", label:"Mode of access",  tooltip:"How users access the application", value:"Browser", options:[
+												  "Browser", "Thin Client" ,"Thick Client","Vendor","Other"
+												]},
+
+		                              {view:"textarea", label:"Authentication & Authorization", height:60,  placeholder:"Describe the LDAP and AD roles"}
+
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:190
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+		  // left 5
+		  var left5 = {header:"Integration", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              {view:"textarea", height:50, label:"Web Level Integrations",   placeholder:""},
+		                              {view:"textarea",  height:50,label:"Application Level Integrations ",   placeholder:""},
+		                              {view:"textarea", height:50, label:"Database Level Integrations",   placeholder:""},
+		                              {view:"textarea",  height:50, label:"Any Other Integrations",   placeholder:""}
+
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:190
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+		 // right 5
+		 var right5 = {header:"Security", collasped:false, body:{ margin:20,rows:[
+
+		     {view:"form", elements:[
+		                              {view:"textarea", height:60, label:"Application Security ",   placeholder:"describe the application roles, user entitlements , actions and audit features"},
+		                              {view:"textarea", height:60, label:"Session Authenticity",   placeholder:"details of session timeout on user inactivity, Session replication, session validation etc. "},
+		                              {view:"textarea", height:50, label:"Data Storage Encryption",   placeholder:"List Encryption details, type of encryption At Rest, In Motion etc, algorithm or N/A"},
+		                              {view:"textarea",height:50, label:"Key Management",   placeholder:"details of key storage, key rotation etc. or N/A"},
+		                              {view:"textarea", height:50,label:"Certificate Management",   placeholder:"Website Certificate management, storage, authentication etc."},
+		                              {view:"textarea", label:"Code Repository",  height:50, placeholder:"Code repository entitlements and seperation of duties"}
+
+
+		                            ],
+		                            elementsConfig: {
+		                                labelWidth:190
+		                            }
+		     }
+		     ]
+		  }
+		         };
+
+
+	 // right 6
+		 var right6 =	{header:"Document Upload", collasped:false, body:{ margin:20,rows:[
+		 { view:"form",
+    rows:[
+        {
+            view:"uploader",
+            id: "uploader_1",
+            value:"Upload file",
+            link:"mylist",
+            upload:"php/upload.php",
+            datatype:"json",
+            height:50,
+            inputWidth:150,
+            align:"center",
+            css:"blue_row"
+        },
+        {
+            view:"list",  id:"mylist", type:"uploader",
+            autoheight:true
+        }
+    ]
+} ] } }  ;
+
+		var left = { gravity:2, rows:[
+		    left1,
+		    left2,
+		    left3,
+		    left4,
+		    left5
+		]
+
+
+		};
+
+			var right = { gravity:1,rows:[
+			right1,
+		    right2,
+		    right3,
+		    right4,
+		    right5,
+		    right6
+
+		]
+
+		};
+
+
+
+
+
+		var ui = {
+			view: "scrollview",
+			container:"layout_div",
+			body:{
+				type: "space",
+				rows:[
+					{view:"toolbar",
+						height: 65,
+						elements:[
+						   { view:"button",  type:"imageTop",image:"logo.png",width:130},
+						    {width:100},
+							{view:"label", width:700, align:"center", template: "<span class='main_title'>Cloud Services Application discovery</span>"},{},
+							{view:"icon",width: 40, icon:"info-circle"},
+							{view:"icon",width: 40, icon:"comments"},
+							{view:"icon",width: 40, icon:"cog", popup: "lang" }
+
+						]},
+
+					{autoheight:true, type: "wide", cols:[ left,{view:"resizer"},right]
+					}
+				]
+			}
+
+		};
+
+		 webix.ready(function(){
+		   webix.ui(ui);
+		 });
+
+		</script>
+</body>
+</html>
