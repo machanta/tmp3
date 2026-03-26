@@ -165,3 +165,70 @@ public class PptxViewerController {
 
     // ... same convertToPdf method as above
 }
+
+
+
+// Download ppptx and xlsx files from url
+
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.*;
+
+@RestController
+@RequestMapping("/files")
+public class FileDownloadController {
+
+    private static final Map<String, MediaType> ALLOWED_TYPES = Map.of(
+        ".pptx", MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+        ".xlsx", MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    );
+
+    @GetMapping("/download")
+    public ResponseEntity<ByteArrayResource> download(@RequestParam String filePath) throws IOException {
+
+        Path path = Path.of(filePath);
+        String fileName = path.getFileName().toString();
+
+        // Security + type check
+        String ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+        if (!path.isAbsolute() || !Files.exists(path) || !ALLOWED_TYPES.containsKey(ext)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        byte[] data = Files.readAllBytes(path);
+
+        return ResponseEntity.ok()
+                .contentType(ALLOWED_TYPES.get(ext))
+                .contentLength(data.length)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(new ByteArrayResource(data));
+    }
+}
+
+
+<a href="/files/download?filePath=C:/reports/budget.xlsx">Download Excel</a>
+<a href="/files/download?filePath=C:/presentations/slides.pptx">Download PowerPoint</a>
+
+
+/// Stream data instead of loading in memory
+
+@GetMapping("/download")
+public ResponseEntity<InputStreamResource> download(@RequestParam String filePath) throws IOException {
+
+    Path path = Path.of(filePath);
+    String fileName = path.getFileName().toString();
+    String ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+
+    if (!path.isAbsolute() || !Files.exists(path) || !ALLOWED_TYPES.containsKey(ext)) {
+        return ResponseEntity.badRequest().build();
+    }
+
+    return ResponseEntity.ok()
+            .contentType(ALLOWED_TYPES.get(ext))
+            .contentLength(Files.size(path))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+            .body(new InputStreamResource(Files.newInputStream(path)));
+}
