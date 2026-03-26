@@ -1,0 +1,167 @@
+<dependency>
+    <groupId>com.documents4j</groupId>
+    <artifactId>documents4j-local</artifactId>
+    <version>1.1.15</version>
+</dependency>
+<dependency>
+    <groupId>com.documents4j</groupId>
+    <artifactId>documents4j-transformer-msoffice-powerpoint</artifactId>
+    <version>1.1.15</version>
+</dependency>
+
+import com.documents4j.api.*;
+import com.documents4j.job.LocalConverter;
+
+import java.io.*;
+import java.util.concurrent.TimeUnit;
+
+public class PptxToPdf {
+
+    public static void convert(String pptxPath, String pdfPath) throws Exception {
+        IConverter converter = LocalConverter.builder()
+            .workerPool(1, 4, 5, TimeUnit.SECONDS)
+            .build();
+
+        try (InputStream in = new FileInputStream(pptxPath);
+             OutputStream out = new FileOutputStream(pdfPath)) {
+
+            boolean success = converter.convert(in)
+                .as(DocumentType.MS_POWERPOINT)
+                .to(out)
+                .as(DocumentType.PDF)
+                .execute();
+
+            if (!success) {
+                throw new RuntimeException("Conversion failed");
+            }
+        } finally {
+            converter.shutDown();
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        convert("presentation.pptx", "output.pdf");
+    }
+}
+
+
+
+/// Spring to link and convert
+
+import com.documents4j.api.*;
+import com.documents4j.job.LocalConverter;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.*;
+import java.nio.file.*;
+import java.util.concurrent.TimeUnit;
+
+@RestController
+@RequestMapping("/pptx")
+public class PptxViewerController {
+
+    @GetMapping("/view")
+    public ResponseEntity<ByteArrayResource> viewPptx(
+            @RequestParam String filePath) {
+
+        Path path = Path.of(filePath);
+
+        // Basic security check - prevent path traversal
+        if (!path.isAbsolute() || !Files.exists(path) || !filePath.endsWith(".pptx")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            byte[] pdfBytes = convertToPdf(path.toFile());
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\""
+                            + path.getFileName().toString().replace(".pptx", ".pdf") + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    private byte[] convertToPdf(File pptxFile) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        IConverter converter = LocalConverter.builder()
+                .workerPool(1, 4, 5, TimeUnit.SECONDS)
+                .build();
+
+        try (InputStream in = new FileInputStream(pptxFile)) {
+            boolean success = converter.convert(in)
+                    .as(DocumentType.MS_POWERPOINT)
+                    .to(out)
+                    .as(DocumentType.PDF)
+                    .execute();
+
+            if (!success) {
+                throw new RuntimeException("Conversion failed for: " + pptxFile.getName());
+            }
+        } finally {
+            converter.shutDown();
+        }
+
+        return out.toByteArray();
+    }
+}
+
+
+
+<a href="/pptx/view?filePath=C:/presentations/slides.pptx" target="_blank">
+    View Presentation
+</a>
+
+
+### With Caching
+
+
+import org.springframework.stereotype.Component;
+import java.util.concurrent.*;
+
+@Component
+public class PptxViewerController {
+
+    // Cache: filePath -> PDF bytes
+    private final ConcurrentHashMap<String, byte[]> cache = new ConcurrentHashMap<>();
+
+    @GetMapping("/view")
+    public ResponseEntity<ByteArrayResource> viewPptx(@RequestParam String filePath) {
+
+        Path path = Path.of(filePath);
+        if (!path.isAbsolute() || !Files.exists(path) || !filePath.endsWith(".pptx")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            byte[] pdfBytes = cache.computeIfAbsent(filePath, key -> {
+                try {
+                    return convertToPdf(path.toFile());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\""
+                            + path.getFileName().toString().replace(".pptx", ".pdf") + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // ... same convertToPdf method as above
+}
