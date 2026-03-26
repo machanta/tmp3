@@ -232,3 +232,69 @@ public ResponseEntity<InputStreamResource> download(@RequestParam String filePat
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
             .body(new InputStreamResource(Files.newInputStream(path)));
 }
+
+
+
+//Using POI
+
+import org.apache.poi.xslf.usermodel.*;
+import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class PptxToPdf {
+
+    public static void convert(String pptxPath, String pdfPath) throws Exception {
+        try (XMLSlideShow pptx = new XMLSlideShow(new FileInputStream(pptxPath));
+             PDDocument pdf = new PDDocument()) {
+
+            Dimension pageSize = pptx.getPageSize();
+
+            for (XSLFSlide slide : pptx.getSlides()) {
+                // Render slide to BufferedImage
+                BufferedImage image = new BufferedImage(
+                    pageSize.width, pageSize.height, BufferedImage.TYPE_INT_RGB
+                );
+                Graphics2D graphics = image.createGraphics();
+                graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                graphics.setPaint(Color.WHITE);
+                graphics.fill(new Rectangle(pageSize));
+                slide.draw(graphics);
+                graphics.dispose();
+
+                // Add image as a PDF page
+                PDPage page = new PDPage(
+                    new org.apache.pdfbox.pdmodel.common.PDRectangle(pageSize.width, pageSize.height)
+                );
+                pdf.addPage(page);
+
+                try (PDPageContentStream content = new PDPageContentStream(pdf, page)) {
+                    var pdImage = LosslessFactory.createFromImage(pdf, image);
+                    content.drawImage(pdImage, 0, 0, pageSize.width, pageSize.height);
+                }
+            }
+
+            pdf.save(pdfPath);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        convert("presentation.pptx", "output.pdf");
+    }
+}
+
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.3.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.pdfbox</groupId>
+    <artifactId>pdfbox</artifactId>
+    <version>3.0.3</version>
+</dependency>
+
